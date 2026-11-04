@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_DB: aternos
+      POSTGRES_USER: aternos
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aternos -d aternos"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    working_dir: /app
+    environment:
+      # The dev server is single-threaded by default, which stalls Livewire uploads.
+      PHP_CLI_SERVER_WORKERS: 4
+    volumes:
+      - ./backend:/app
+      - ./docker/backend-entry.sh:/usr/local/bin/backend-entry:ro
+    ports:
+      - "8100:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: backend-entry
+
+  frontend:
+    image: node:22.22.2-slim
+    working_dir: /app
+    environment:
+      API_URL: http://backend:8000
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3100:3100"
+    depends_on:
+      - backend
+    # One shared node_modules: this resets it to the lockfile on every start, so it can't go stale.
+    command: sh -c "npm ci --no-audit --no-fund && npm run dev"
+
+volumes:
+  postgres-data:

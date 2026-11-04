@@ -1,0 +1,31 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Category;
+use App\Models\Person;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    // Runs on every container start, so it must not duplicate or overwrite edited data.
+    public function run(): void
+    {
+        User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            ['name' => 'Admin', 'password' => 'password'],
+        );
+
+        // Only when empty, so a renamed or removed category doesn't come back on restart.
+        if (Category::doesntExist()) {
+            Category::create(['name' => 'Moderator', 'slug' => 'moderator']);
+            Category::create(['name' => 'Former Moderator', 'slug' => 'former-moderator']);
+        }
+
+        if (Person::doesntExist()) {
+            $categories = Category::all();
+            Person::factory()->count(30)->create()->each(fn (Person $person) => $person->categories()->attach($categories->random()));
+        }
+    }
+}
