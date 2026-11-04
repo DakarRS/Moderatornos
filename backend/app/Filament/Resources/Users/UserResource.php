@@ -15,7 +15,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Validation\Rules\Password;
 
 class UserResource extends Resource
 {
@@ -32,7 +31,12 @@ class UserResource extends Resource
         return $schema
             ->components([
                 TextInput::make('name')->required()->maxLength(255),
-                TextInput::make('email')->email()->required()->maxLength(255)->unique(ignoreRecord: true),
+                TextInput::make('username')
+                    ->required()
+                    ->maxLength(50)
+                    ->regex(User::USERNAME_PATTERN)
+                    ->unique(ignoreRecord: true)
+                    ->helperText('Used to log in. Lowercase letters, numbers, dots, dashes and underscores.'),
                 Select::make('role')
                     ->options(UserRole::class)
                     ->default(UserRole::Editor)
@@ -44,7 +48,7 @@ class UserResource extends Resource
                 TextInput::make('password')
                     ->password()
                     ->revealable()
-                    ->rule(Password::min(12))
+                    ->rule(User::passwordRule())
                     ->required(fn (string $operation): bool => $operation === 'create')
                     // Left blank when editing, so the current password stays.
                     ->dehydrated(fn (?string $state): bool => filled($state))
@@ -58,7 +62,7 @@ class UserResource extends Resource
             ->defaultSort('name')
             ->columns([
                 TextColumn::make('name')->searchable()->sortable(),
-                TextColumn::make('email')->searchable()->sortable(),
+                TextColumn::make('username')->searchable()->sortable(),
                 TextColumn::make('role')
                     ->badge()
                     ->formatStateUsing(fn (UserRole $state): string => $state->name)

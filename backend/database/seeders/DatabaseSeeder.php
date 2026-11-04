@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         }
 
         User::firstOrCreate(
-            ['email' => 'admin@example.com'],
+            ['username' => 'admin'],
             ['name' => 'Admin', 'password' => 'password', 'role' => UserRole::Admin],
         );
 
