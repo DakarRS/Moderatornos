@@ -26,7 +26,6 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
             'username' => fake()->unique()->regexify('[a-z][a-z0-9]{9}'),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),

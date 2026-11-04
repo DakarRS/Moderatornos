@@ -32,8 +32,8 @@ class RolesTest extends TestCase
 
     public function test_the_first_user_is_an_admin_and_later_ones_are_editors(): void
     {
-        $first = User::create(['name' => 'First', 'username' => 'first', 'password' => 'password-password']);
-        $second = User::create(['name' => 'Second', 'username' => 'second', 'password' => 'password-password']);
+        $first = User::create(['username' => 'first', 'password' => 'password-password']);
+        $second = User::create(['username' => 'second', 'password' => 'password-password']);
 
         $this->assertSame(UserRole::Admin, $first->fresh()->role);
         $this->assertSame(UserRole::Editor, $second->fresh()->role);
@@ -41,7 +41,7 @@ class RolesTest extends TestCase
 
     public function test_the_create_user_command_makes_the_first_account_an_admin(): void
     {
-        Artisan::call('user:create', ['--name' => 'Boss', '--username' => 'boss', '--password' => 'long-enough-password']);
+        Artisan::call('user:create', ['--username' => 'boss', '--password' => 'long-enough-password']);
 
         $this->assertSame(UserRole::Admin, User::firstWhere('username', 'boss')->role);
     }
@@ -115,7 +115,7 @@ class RolesTest extends TestCase
         $this->actingAs($this->admin());
 
         Livewire::test(ManageUsers::class)
-            ->callAction('create', data: ['name' => 'Co', 'username' => 'coadmin', 'password' => 'long-enough-password', 'role' => 'admin'])
+            ->callAction('create', data: ['username' => 'coadmin', 'password' => 'long-enough-password', 'role' => 'admin'])
             ->assertHasNoActionErrors();
 
         $this->assertSame(UserRole::Admin, User::firstWhere('username', 'coadmin')->role);
@@ -126,7 +126,7 @@ class RolesTest extends TestCase
         $this->actingAs($this->admin());
 
         Livewire::test(ManageUsers::class)
-            ->callAction('create', data: ['name' => 'Ed', 'username' => 'editor1', 'password' => 'long-enough-password'])
+            ->callAction('create', data: ['username' => 'editor1', 'password' => 'long-enough-password'])
             ->assertHasNoActionErrors();
 
         $this->assertSame(UserRole::Editor, User::firstWhere('username', 'editor1')->role);
@@ -150,7 +150,7 @@ class RolesTest extends TestCase
         $this->actingAs($me);
 
         Livewire::test(ManageUsers::class)
-            ->callAction(TestAction::make('edit')->table($me), data: ['name' => 'Still Me', 'role' => 'editor']);
+            ->callAction(TestAction::make('edit')->table($me), data: ['role' => 'editor']);
 
         $this->assertSame(UserRole::Admin, $me->fresh()->role);
     }
@@ -168,7 +168,7 @@ class RolesTest extends TestCase
         $this->actingAs($this->admin());
 
         Livewire::test(ManageUsers::class)
-            ->callAction('create', data: ['name' => 'X', 'username' => 'x', 'password' => 'long-enough-password', 'role' => 'superuser'])
+            ->callAction('create', data: ['username' => 'x', 'password' => 'long-enough-password', 'role' => 'superuser'])
             ->assertHasActionErrors(['role']);
     }
 

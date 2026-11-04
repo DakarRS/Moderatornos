@@ -6,7 +6,9 @@ use App\Enums\UserRole;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
@@ -96,20 +98,26 @@ class UsernameLoginTest extends TestCase
         $this->assertSame('ada', $this->user()->getAppAuthenticationHolderName());
     }
 
-    public function test_the_profile_changes_name_and_password_but_has_no_username_or_email(): void
+    public function test_the_profile_only_changes_the_password(): void
     {
         $user = $this->user();
         $this->actingAs($user);
 
         Livewire::test(EditProfile::class)
             ->assertSchemaComponentDoesNotExist('email', 'form')
+            ->assertSchemaComponentDoesNotExist('name', 'form')
             ->assertSchemaComponentDoesNotExist('username', 'form')
-            ->fillForm(['name' => 'Ada Renamed'])
+            ->fillForm(['password' => 'another-long-password', 'passwordConfirmation' => 'another-long-password', 'currentPassword' => self::PASSWORD])
             ->call('save')
             ->assertHasNoFormErrors();
 
-        $this->assertSame('Ada Renamed', $user->fresh()->name);
-        $this->assertSame('ada', $user->fresh()->username);
+        $this->assertTrue(Hash::check('another-long-password', $user->fresh()->password));
+    }
+
+    public function test_only_a_username_is_stored_and_shown_for_an_account(): void
+    {
+        $this->assertFalse(Schema::hasColumn('users', 'name'));
+        $this->assertSame('ada', Filament::getUserName($this->user()));
     }
 
     public function test_the_command_rejects_bad_input(): void
@@ -117,11 +125,10 @@ class UsernameLoginTest extends TestCase
         $this->user();
 
         foreach ([
-            ['--name' => 'A', '--username' => 'Bad Name!', '--password' => self::PASSWORD],
-            ['--name' => 'A', '--username' => 'ab', '--password' => self::PASSWORD],
-            ['--name' => 'A', '--username' => 'ada', '--password' => self::PASSWORD],
-            ['--name' => 'A', '--username' => 'newone', '--password' => 'short'],
-            ['--name' => '', '--username' => 'newone', '--password' => self::PASSWORD],
+            ['--username' => 'Bad Name!', '--password' => self::PASSWORD],
+            ['--username' => 'ab', '--password' => self::PASSWORD],
+            ['--username' => 'ada', '--password' => self::PASSWORD],
+            ['--username' => 'newone', '--password' => 'short'],
         ] as $options) {
             $this->assertSame(1, Artisan::call('user:create', $options + ['--no-interaction' => true]));
         }
@@ -131,7 +138,9 @@ class UsernameLoginTest extends TestCase
 
     public function test_the_migration_turns_existing_emails_into_unique_usernames(): void
     {
+        $dropName = require database_path('migrations/2026_11_05_000009_drop_name_from_users_table.php');
         $migration = require database_path('migrations/2026_11_05_000007_replace_email_with_username_on_users_table.php');
+        $dropName->down();
         $migration->down();
 
         $now = now();
@@ -140,6 +149,7 @@ class UsernameLoginTest extends TestCase
         }
 
         $migration->up();
+        $dropName->up();
 
         $this->assertSame(
             ['ada.l-tag', 'ada.l-tag-2', 'x-user'],

@@ -33,20 +33,20 @@ class UserAdminTest extends TestCase
     public function test_an_admin_can_add_a_user_who_can_then_log_in(): void
     {
         Livewire::test(ManageUsers::class)
-            ->callAction('create', data: ['name' => 'Ada', 'username' => 'ada', 'password' => 'correct-horse-battery'])
+            ->callAction('create', data: ['username' => 'ada', 'password' => 'correct-horse-battery'])
             ->assertHasNoActionErrors();
 
         $this->assertTrue(Hash::check('correct-horse-battery', User::firstWhere('username', 'ada')->password));
     }
 
-    public function test_new_users_need_a_password_a_valid_unique_username_and_a_name(): void
+    public function test_new_users_need_a_password_and_a_valid_unique_username(): void
     {
         Livewire::test(ManageUsers::class)
-            ->callAction('create', data: ['name' => '', 'username' => $this->me->username, 'password' => ''])
-            ->assertHasActionErrors(['name' => 'required', 'username', 'password' => 'required']);
+            ->callAction('create', data: ['username' => $this->me->username, 'password' => ''])
+            ->assertHasActionErrors(['username', 'password' => 'required']);
 
         Livewire::test(ManageUsers::class)
-            ->callAction('create', data: ['name' => 'A', 'username' => 'Not Valid!', 'password' => 'short'])
+            ->callAction('create', data: ['username' => 'Not Valid!', 'password' => 'short'])
             ->assertHasActionErrors(['username', 'password']);
     }
 
@@ -55,10 +55,10 @@ class UserAdminTest extends TestCase
         $user = User::factory()->create(['password' => 'original-password-1']);
 
         Livewire::test(ManageUsers::class)
-            ->callAction(TestAction::make('edit')->table($user), data: ['name' => 'Renamed', 'password' => ''])
+            ->callAction(TestAction::make('edit')->table($user), data: ['username' => 'renamed', 'password' => ''])
             ->assertHasNoActionErrors();
 
-        $this->assertSame('Renamed', $user->fresh()->name);
+        $this->assertSame('renamed', $user->fresh()->username);
         $this->assertTrue(Hash::check('original-password-1', $user->fresh()->password));
     }
 

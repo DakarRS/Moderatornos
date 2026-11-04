@@ -22,7 +22,8 @@ Run backend tests with `docker compose exec backend php artisan test`.
 Pushing to `main` runs the tests, builds images and deploys to the server with Docker Compose behind Caddy. See `deploy/`.
 
 - Roll back by re-running the deploy workflow for an older commit in GitHub Actions.
-- Create an admin: `ssh root@<server> docker exec -it moderatornos-backend-1 php artisan user:create`
+- Create an account from the server: `ssh -t root@<server> docker exec -it moderatornos-backend-1 php artisan user:create --role=admin`
+- Invite people from the admin's Invites page. Registration is closed without a valid link.
 - Secrets live in `/opt/moderatornos/.env` and `backup.env` on the server, never in this repository.
 - Back up now: `ssh root@<server> moderatornos-backup`
 
