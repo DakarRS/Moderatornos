@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Users;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Models\User;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -31,6 +33,14 @@ class UserResource extends Resource
             ->components([
                 TextInput::make('name')->required()->maxLength(255),
                 TextInput::make('email')->email()->required()->maxLength(255)->unique(ignoreRecord: true),
+                Select::make('role')
+                    ->options(UserRole::class)
+                    ->default(UserRole::Editor)
+                    ->required()
+                    ->native(false)
+                    // A disabled field isn't saved, so at least one admin always remains.
+                    ->disabled(fn (?User $record): bool => $record?->is(auth()->user()) ?? false)
+                    ->helperText(fn (?User $record): ?string => $record?->is(auth()->user()) ? "You can't change your own role." : null),
                 TextInput::make('password')
                     ->password()
                     ->revealable()
@@ -49,12 +59,17 @@ class UserResource extends Resource
             ->columns([
                 TextColumn::make('name')->searchable()->sortable(),
                 TextColumn::make('email')->searchable()->sortable(),
+                TextColumn::make('role')
+                    ->badge()
+                    ->formatStateUsing(fn (UserRole $state): string => $state->name)
+                    ->color(fn (UserRole $state): string => $state === UserRole::Admin ? 'primary' : 'gray')
+                    ->sortable(),
                 TextColumn::make('created_at')->label('Added')->date()->sortable(),
             ])
             ->recordActions([
                 EditAction::make(),
-                // Everyone here is an admin, so this guards against removing your own access by accident.
-                DeleteAction::make()->hidden(fn (User $record): bool => $record->is(auth()->user())),
+                // UserPolicy refuses deleting yourself, and Filament hides the button to match.
+                DeleteAction::make(),
             ]);
     }
 
