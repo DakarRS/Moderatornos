@@ -149,14 +149,65 @@ class InvitationTest extends TestCase
         $this->assertNull($invitation->fresh()->used_at);
     }
 
-    public function test_passwords_need_twelve_characters(): void
+    public function test_a_short_password_shows_one_error_not_two(): void
     {
-        $page = $this->registerPage($this->invite());
+        $page = $this->registerPage($this->invite())
+            ->fillForm($this->form(['password' => 'abc', 'passwordConfirmation' => 'abc']))
+            ->call('register');
 
-        $page->fillForm($this->form(['password' => 'elevenchars', 'passwordConfirmation' => 'elevenchars']))
+        $this->assertSame(
+            ['The password field must be at least 8 characters.'],
+            $page->errors()->get('data.password'),
+        );
+    }
+
+    public function test_capital_letters_in_a_username_are_kept(): void
+    {
+        $this->registerPage($this->invite())
+            ->fillForm($this->form(['username' => 'Dobbie']))
+            ->call('register')
+            ->assertHasNoFormErrors();
+
+        $this->assertNotNull(User::firstWhere('username', 'Dobbie'));
+    }
+
+    public function test_a_username_differing_only_by_case_is_refused(): void
+    {
+        User::factory()->create(['username' => 'dobbie']);
+
+        $this->registerPage($this->invite())
+            ->fillForm($this->form(['username' => 'Dobbie']))
+            ->call('register')
+            ->assertHasFormErrors(['username']);
+
+        $this->assertSame(1, User::count());
+    }
+
+    public function test_an_invalid_username_explains_what_is_allowed(): void
+    {
+        $page = $this->registerPage($this->invite())
+            ->fillForm($this->form(['username' => 'no spaces!']))
+            ->call('register');
+
+        $this->assertSame(
+            ['Use 3 to 50 letters, numbers, dots, dashes or underscores, starting with a letter or number.'],
+            $page->errors()->get('data.username'),
+        );
+    }
+
+    public function test_passwords_need_eight_characters(): void
+    {
+        $this->registerPage($this->invite())
+            ->fillForm($this->form(['password' => 'sevench', 'passwordConfirmation' => 'sevench']))
             ->call('register')
             ->assertHasFormErrors(['password']);
-        $this->assertNull(User::firstWhere('username', 'newperson'));
+        $this->assertSame(0, User::count());
+
+        $this->registerPage($this->invite())
+            ->fillForm($this->form(['password' => 'eightchr', 'passwordConfirmation' => 'eightchr']))
+            ->call('register')
+            ->assertHasNoFormErrors();
+        $this->assertSame(1, User::count());
     }
 
     public function test_registration_attempts_are_rate_limited(): void

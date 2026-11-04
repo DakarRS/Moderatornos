@@ -42,18 +42,15 @@ class Register extends BaseRegister
 
     public function form(Schema $schema): Schema
     {
-        /** @var TextInput $password */
-        $password = $this->getPasswordFormComponent();
-
         return $schema->components([
             TextInput::make('username')
                 ->required()
                 ->maxLength(50)
-                ->regex(User::USERNAME_PATTERN)
-                ->unique(User::class, 'username')
+                ->rules(User::usernameRules())
+                ->validationMessages(['regex' => User::USERNAME_MESSAGE])
                 ->autocomplete('username')
-                ->helperText('Used to log in. Lowercase letters, numbers, dots, dashes and underscores.'),
-            $password->rule(User::passwordRule()),
+                ->helperText('Used to log in. Letters, numbers, dots, dashes and underscores.'),
+            $this->getPasswordFormComponent(),
             $this->getPasswordConfirmationFormComponent(),
         ]);
     }

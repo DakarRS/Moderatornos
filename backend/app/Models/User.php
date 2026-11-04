@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
+use App\Rules\UniqueUsername;
 use Database\Factories\UserFactory;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
@@ -17,8 +18,6 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
 /**
  * @property string $username
@@ -39,8 +38,9 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         });
     }
 
-    // Lowercase ASCII only, so nobody can register a lookalike of an existing name.
-    public const USERNAME_PATTERN = '/^[a-z0-9][a-z0-9._-]{2,49}$/';
+    public const USERNAME_PATTERN = '/^[A-Za-z0-9][A-Za-z0-9._-]{2,49}$/';
+
+    public const USERNAME_MESSAGE = 'Use 3 to 50 letters, numbers, dots, dashes or underscores, starting with a letter or number.';
 
     /** @return list<mixed> */
     public static function usernameRules(?self $ignore = null): array
@@ -49,13 +49,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'required',
             'string',
             'regex:'.self::USERNAME_PATTERN,
-            Rule::unique(self::class, 'username')->ignore($ignore),
+            new UniqueUsername($ignore),
         ];
-    }
-
-    public static function passwordRule(): Password
-    {
-        return Password::min(12);
     }
 
     public function getFilamentName(): string

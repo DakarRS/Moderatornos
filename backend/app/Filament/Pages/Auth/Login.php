@@ -6,6 +6,7 @@ use Filament\Auth\Pages\Login as BaseLogin;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 use SensitiveParameter;
 
@@ -36,7 +37,8 @@ class Login extends BaseLogin
     protected function getCredentialsFromFormData(#[SensitiveParameter] array $data): array
     {
         return [
-            'username' => strtolower(trim($data['username'])),
+            // A closure because the auth provider would otherwise match the case exactly.
+            'username' => fn (Builder $query) => $query->whereRaw('lower(username) = ?', [mb_strtolower(trim($data['username']))]),
             'password' => $data['password'],
         ];
     }

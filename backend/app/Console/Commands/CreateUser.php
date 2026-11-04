@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\text;
@@ -29,9 +30,9 @@ class CreateUser extends Command
 
         $validator = Validator::make($data, [
             'username' => User::usernameRules(),
-            'password' => ['required', User::passwordRule()],
+            'password' => ['required', Password::default()],
             'role' => [Rule::enum(UserRole::class)],
-        ]);
+        ], ['username.regex' => User::USERNAME_MESSAGE]);
 
         if ($validator->fails()) {
             foreach ($validator->errors()->all() as $error) {
