@@ -17,6 +17,15 @@ Categories are managed in the admin, and the frontend tabs follow their order.
 
 Run backend tests with `docker compose exec backend php artisan test`.
 
+## Production
+
+Pushing to `main` runs the tests, builds images and deploys to the server with Docker Compose behind Caddy. See `deploy/`.
+
+- Roll back by re-running the deploy workflow for an older commit in GitHub Actions.
+- Create an admin: `ssh root@<server> docker exec -it moderatornos-backend-1 php artisan make:filament-user`
+- Secrets live in `/opt/moderatornos/.env` and `backup.env` on the server, never in this repository.
+- Back up now: `ssh root@<server> moderatornos-backup`
+
 ## Dependencies
 
 `frontend/node_modules` is one folder shared by your machine and Docker, and the frontend container resets it to `package-lock.json` every time it starts. Your editor reads the same packages the app runs on.
