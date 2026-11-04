@@ -24,13 +24,12 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $recordTitleAttribute = 'username';
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                TextInput::make('name')->required()->maxLength(255),
                 TextInput::make('username')
                     ->required()
                     ->maxLength(50)
@@ -59,9 +58,8 @@ class UserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('name')
+            ->defaultSort('username')
             ->columns([
-                TextColumn::make('name')->searchable()->sortable(),
                 TextColumn::make('username')->searchable()->sortable(),
                 TextColumn::make('role')
                     ->badge()

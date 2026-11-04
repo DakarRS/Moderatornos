@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
 
         User::firstOrCreate(
             ['username' => 'admin'],
-            ['name' => 'Admin', 'password' => 'password', 'role' => UserRole::Admin],
+            ['password' => 'password', 'role' => UserRole::Admin],
         );
 
         // Only when empty, so a renamed or removed category doesn't come back on restart.

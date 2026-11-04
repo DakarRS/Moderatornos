@@ -5,6 +5,7 @@ namespace App\Filament\Pages\Auth;
 use Filament\Auth\Pages\Login as BaseLogin;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Validation\ValidationException;
 use SensitiveParameter;
 
@@ -20,6 +21,12 @@ class Login extends BaseLogin
             $this->getPasswordFormComponent(),
             $this->getRememberFormComponent(),
         ]);
+    }
+
+    // Registration needs an invite link, so the login page shouldn't offer a sign-up.
+    public function getSubheading(): string|Htmlable|null
+    {
+        return filled($this->userUndertakingMultiFactorAuthentication) ? parent::getSubheading() : null;
     }
 
     /**

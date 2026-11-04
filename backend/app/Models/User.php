@@ -10,6 +10,7 @@ use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecover
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasName;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -23,9 +24,9 @@ use Illuminate\Validation\Rules\Password;
  * @property string $username
  * @property UserRole $role
  */
-#[Fillable(['name', 'username', 'password', 'role'])]
+#[Fillable(['username', 'password', 'role'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasName
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, Notifiable;
@@ -55,6 +56,11 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public static function passwordRule(): Password
     {
         return Password::min(12);
+    }
+
+    public function getFilamentName(): string
+    {
+        return $this->username;
     }
 
     public function getAppAuthenticationHolderName(): string

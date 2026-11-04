@@ -13,14 +13,13 @@ use function Laravel\Prompts\text;
 
 class CreateUser extends Command
 {
-    protected $signature = 'user:create {--name=} {--username=} {--password=} {--role= : admin or editor}';
+    protected $signature = 'user:create {--username=} {--password=} {--role= : admin or editor}';
 
     protected $description = 'Create an account. The first account on a site always becomes an admin.';
 
     public function handle(): int
     {
         $data = [
-            'name' => $this->option('name') ?? text('Name', required: true),
             'username' => $this->option('username') ?? text('Username', required: true),
             'password' => $this->option('password') ?? password('Password', required: true),
         ];
@@ -29,7 +28,6 @@ class CreateUser extends Command
         }
 
         $validator = Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
             'username' => User::usernameRules(),
             'password' => ['required', User::passwordRule()],
             'role' => [Rule::enum(UserRole::class)],

@@ -11,7 +11,6 @@ class EditProfile extends BaseEditProfile
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            $this->getNameFormComponent(),
             $this->getPasswordFormComponent(),
             $this->getPasswordConfirmationFormComponent(),
             $this->getCurrentPasswordFormComponent(),
