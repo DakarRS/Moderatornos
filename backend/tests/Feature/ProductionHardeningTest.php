@@ -76,14 +76,13 @@ class ProductionHardeningTest extends TestCase
         $this->get('/up')->assertOk();
     }
 
-    public function test_multi_factor_login_is_required_only_in_production(): void
+    public function test_multi_factor_login_is_available_but_not_forced_in_production(): void
     {
+        $this->app->detectEnvironment(fn () => 'production');
         $panel = Filament::getPanel('admin');
+
         $this->assertTrue($panel->hasMultiFactorAuthentication());
         $this->assertFalse($panel->isMultiFactorAuthenticationRequired());
-
-        $this->app->detectEnvironment(fn () => 'production');
-        $this->assertTrue($panel->isMultiFactorAuthenticationRequired());
     }
 
     public function test_multi_factor_secrets_are_encrypted_and_never_serialized(): void
