@@ -7,6 +7,7 @@ use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Artisan;
@@ -66,6 +67,36 @@ class UsernameLoginTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_a_capitalised_username_logs_in_with_any_case(): void
+    {
+        $user = $this->user('Dobbie');
+
+        foreach (['Dobbie', 'dobbie', 'DOBBIE'] as $typed) {
+            auth()->logout();
+            Livewire::test(Login::class)
+                ->fillForm(['username' => $typed, 'password' => self::PASSWORD])
+                ->call('authenticate')
+                ->assertHasNoFormErrors();
+
+            $this->assertAuthenticatedAs($user);
+        }
+    }
+
+    public function test_the_database_refuses_usernames_differing_only_by_case(): void
+    {
+        $this->user('Dobbie');
+
+        $this->expectException(UniqueConstraintViolationException::class);
+        User::factory()->create(['username' => 'dobbie']);
+    }
+
+    public function test_the_command_refuses_a_username_differing_only_by_case(): void
+    {
+        $this->user('Dobbie');
+
+        $this->assertSame(1, Artisan::call('user:create', ['--username' => 'dobbie', '--password' => self::PASSWORD, '--no-interaction' => true]));
+    }
+
     public function test_a_wrong_password_shows_an_error_on_the_username_field(): void
     {
         $this->user();
@@ -112,6 +143,19 @@ class UsernameLoginTest extends TestCase
             ->assertHasNoFormErrors();
 
         $this->assertTrue(Hash::check('another-long-password', $user->fresh()->password));
+    }
+
+    public function test_the_profile_also_requires_eight_characters(): void
+    {
+        $user = $this->user();
+        $this->actingAs($user);
+
+        Livewire::test(EditProfile::class)
+            ->fillForm(['password' => 'sevench', 'passwordConfirmation' => 'sevench', 'currentPassword' => self::PASSWORD])
+            ->call('save')
+            ->assertHasFormErrors(['password']);
+
+        $this->assertTrue(Hash::check(self::PASSWORD, $user->fresh()->password));
     }
 
     public function test_only_a_username_is_stored_and_shown_for_an_account(): void

@@ -15,6 +15,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Validation\Rules\Password;
 
 class UserResource extends Resource
 {
@@ -33,9 +34,9 @@ class UserResource extends Resource
                 TextInput::make('username')
                     ->required()
                     ->maxLength(50)
-                    ->regex(User::USERNAME_PATTERN)
-                    ->unique(ignoreRecord: true)
-                    ->helperText('Used to log in. Lowercase letters, numbers, dots, dashes and underscores.'),
+                    ->rules(fn (?User $record): array => User::usernameRules($record))
+                    ->validationMessages(['regex' => User::USERNAME_MESSAGE])
+                    ->helperText('Used to log in. Letters, numbers, dots, dashes and underscores.'),
                 Select::make('role')
                     ->options(UserRole::class)
                     ->default(UserRole::Editor)
@@ -47,7 +48,7 @@ class UserResource extends Resource
                 TextInput::make('password')
                     ->password()
                     ->revealable()
-                    ->rule(User::passwordRule())
+                    ->rule(Password::default())
                     ->required(fn (string $operation): bool => $operation === 'create')
                     // Left blank when editing, so the current password stays.
                     ->dehydrated(fn (?string $state): bool => filled($state))

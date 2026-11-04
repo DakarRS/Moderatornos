@@ -50,6 +50,29 @@ class UserAdminTest extends TestCase
             ->assertHasActionErrors(['username', 'password']);
     }
 
+    public function test_admins_can_use_capitals_but_not_case_only_duplicates(): void
+    {
+        Livewire::test(ManageUsers::class)
+            ->callAction('create', data: ['username' => 'Dobbie', 'password' => 'long-enough-password'])
+            ->assertHasNoActionErrors();
+        $this->assertNotNull(User::firstWhere('username', 'Dobbie'));
+
+        Livewire::test(ManageUsers::class)
+            ->callAction('create', data: ['username' => 'DOBBIE', 'password' => 'long-enough-password'])
+            ->assertHasActionErrors(['username']);
+    }
+
+    public function test_changing_only_the_case_of_your_own_username_is_allowed(): void
+    {
+        $user = User::factory()->create(['username' => 'dobbie']);
+
+        Livewire::test(ManageUsers::class)
+            ->callAction(TestAction::make('edit')->table($user), data: ['username' => 'Dobbie'])
+            ->assertHasNoActionErrors();
+
+        $this->assertSame('Dobbie', $user->fresh()->username);
+    }
+
     public function test_editing_without_a_password_keeps_the_old_one(): void
     {
         $user = User::factory()->create(['password' => 'original-password-1']);
