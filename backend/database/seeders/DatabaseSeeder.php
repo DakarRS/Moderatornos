@@ -12,6 +12,11 @@ class DatabaseSeeder extends Seeder
     // Runs on every container start, so it must not duplicate or overwrite edited data.
     public function run(): void
     {
+        // Fake people and a known admin password must never reach a real site.
+        if (app()->isProduction()) {
+            return;
+        }
+
         User::firstOrCreate(
             ['email' => 'admin@example.com'],
             ['name' => 'Admin', 'password' => 'password'],
