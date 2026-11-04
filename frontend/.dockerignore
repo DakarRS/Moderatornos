@@ -1,0 +1,8 @@
+node_modules
+dist
+.output
+.nitro
+.tanstack
+.git
+.vscode
+.DS_Store
