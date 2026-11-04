@@ -9,7 +9,7 @@ docker compose up --build
 | What | URL |
 | --- | --- |
 | Frontend | http://localhost:3100 |
-| Admin | http://localhost:8100/admin (`admin@example.com` / `password`, local only) |
+| Admin | http://localhost:8100/admin (`admin` / `password`, local only) |
 | API | http://localhost:8100/api/people?search=&category=&page=&per_page= and http://localhost:8100/api/categories?search= |
 | Postgres | `localhost:5435` (`aternos` / `secret`) |
 
@@ -22,7 +22,7 @@ Run backend tests with `docker compose exec backend php artisan test`.
 Pushing to `main` runs the tests, builds images and deploys to the server with Docker Compose behind Caddy. See `deploy/`.
 
 - Roll back by re-running the deploy workflow for an older commit in GitHub Actions.
-- Create an admin: `ssh root@<server> docker exec -it moderatornos-backend-1 php artisan make:filament-user`
+- Create an admin: `ssh root@<server> docker exec -it moderatornos-backend-1 php artisan user:create`
 - Secrets live in `/opt/moderatornos/.env` and `backup.env` on the server, never in this repository.
 - Back up now: `ssh root@<server> moderatornos-backup`
 

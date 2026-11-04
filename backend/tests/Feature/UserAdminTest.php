@@ -33,21 +33,21 @@ class UserAdminTest extends TestCase
     public function test_an_admin_can_add_a_user_who_can_then_log_in(): void
     {
         Livewire::test(ManageUsers::class)
-            ->callAction('create', data: ['name' => 'Ada', 'email' => 'ada@example.com', 'password' => 'correct-horse-battery'])
+            ->callAction('create', data: ['name' => 'Ada', 'username' => 'ada', 'password' => 'correct-horse-battery'])
             ->assertHasNoActionErrors();
 
-        $this->assertTrue(Hash::check('correct-horse-battery', User::firstWhere('email', 'ada@example.com')->password));
+        $this->assertTrue(Hash::check('correct-horse-battery', User::firstWhere('username', 'ada')->password));
     }
 
-    public function test_new_users_need_a_password_a_valid_unique_email_and_a_name(): void
+    public function test_new_users_need_a_password_a_valid_unique_username_and_a_name(): void
     {
         Livewire::test(ManageUsers::class)
-            ->callAction('create', data: ['name' => '', 'email' => $this->me->email, 'password' => ''])
-            ->assertHasActionErrors(['name' => 'required', 'email', 'password' => 'required']);
+            ->callAction('create', data: ['name' => '', 'username' => $this->me->username, 'password' => ''])
+            ->assertHasActionErrors(['name' => 'required', 'username', 'password' => 'required']);
 
         Livewire::test(ManageUsers::class)
-            ->callAction('create', data: ['name' => 'A', 'email' => 'not-an-email', 'password' => 'short'])
-            ->assertHasActionErrors(['email', 'password']);
+            ->callAction('create', data: ['name' => 'A', 'username' => 'Not Valid!', 'password' => 'short'])
+            ->assertHasActionErrors(['username', 'password']);
     }
 
     public function test_editing_without_a_password_keeps_the_old_one(): void
@@ -73,12 +73,12 @@ class UserAdminTest extends TestCase
         $this->assertTrue(Hash::check('brand-new-password-2', $user->fresh()->password));
     }
 
-    public function test_an_email_can_stay_the_same_when_editing(): void
+    public function test_a_username_can_stay_the_same_when_editing(): void
     {
         $user = User::factory()->create();
 
         Livewire::test(ManageUsers::class)
-            ->callAction(TestAction::make('edit')->table($user), data: ['email' => $user->email])
+            ->callAction(TestAction::make('edit')->table($user), data: ['username' => $user->username])
             ->assertHasNoActionErrors();
     }
 

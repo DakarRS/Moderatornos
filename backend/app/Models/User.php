@@ -16,11 +16,14 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 /**
+ * @property string $username
  * @property UserRole $role
  */
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'username', 'password', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery
 {
@@ -33,6 +36,30 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         static::creating(function (User $user) {
             $user->role ??= static::query()->exists() ? UserRole::Editor : UserRole::Admin;
         });
+    }
+
+    // Lowercase ASCII only, so nobody can register a lookalike of an existing name.
+    public const USERNAME_PATTERN = '/^[a-z0-9][a-z0-9._-]{2,49}$/';
+
+    /** @return list<mixed> */
+    public static function usernameRules(?self $ignore = null): array
+    {
+        return [
+            'required',
+            'string',
+            'regex:'.self::USERNAME_PATTERN,
+            Rule::unique(self::class, 'username')->ignore($ignore),
+        ];
+    }
+
+    public static function passwordRule(): Password
+    {
+        return Password::min(12);
+    }
+
+    public function getAppAuthenticationHolderName(): string
+    {
+        return $this->username;
     }
 
     public function isAdmin(): bool
@@ -54,7 +81,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
         ];
