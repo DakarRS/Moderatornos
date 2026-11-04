@@ -29,11 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->profile()
-            ->multiFactorAuthentication(
-                AppAuthentication::make()->recoverable(),
-                // Only in production, so local logins stay a single step.
-                isRequired: fn (): bool => app()->isProduction(),
-            )
+            ->multiFactorAuthentication(AppAuthentication::make()->recoverable())
             ->colors([
                 'primary' => Color::Indigo,
             ])
