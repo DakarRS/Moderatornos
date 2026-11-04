@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
@@ -16,14 +17,30 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+/**
+ * @property UserRole $role
+ */
+#[Fillable(['name', 'email', 'password', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, Notifiable;
 
-    // There is no public registration, so every user is an admin. Without this, Filament returns 403 outside local.
+    // Accounts only come from an admin or the CLI, so the first one has to be able to manage the rest.
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            $user->role ??= static::query()->exists() ? UserRole::Editor : UserRole::Admin;
+        });
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
+    }
+
+    // There is no public registration, so every account may use the panel. Policies limit what each role can do.
     public function canAccessPanel(Panel $panel): bool
     {
         return true;
@@ -39,6 +56,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
 }

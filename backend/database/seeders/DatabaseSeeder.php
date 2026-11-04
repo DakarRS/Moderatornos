@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\Category;
 use App\Models\Person;
 use App\Models\User;
@@ -19,7 +20,7 @@ class DatabaseSeeder extends Seeder
 
         User::firstOrCreate(
             ['email' => 'admin@example.com'],
-            ['name' => 'Admin', 'password' => 'password'],
+            ['name' => 'Admin', 'password' => 'password', 'role' => UserRole::Admin],
         );
 
         // Only when empty, so a renamed or removed category doesn't come back on restart.
