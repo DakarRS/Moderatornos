@@ -8,7 +8,14 @@ import { WebsiteLink } from '#/components/WebsiteLink'
 import { Button } from '#/components/ui/button'
 import { Card, CardContent } from '#/components/ui/card'
 import { getPerson } from '#/lib/people'
-import { SITE_NAME } from '#/lib/site'
+import type { Person } from '#/lib/people'
+import { SITE_DESCRIPTION, seo, summarize } from '#/lib/seo'
+
+function describe(person: Person) {
+  if (person.bio?.trim()) return summarize(person.bio)
+  const facts = [...person.categories.map((category) => category.name), person.country?.name].filter(Boolean)
+  return facts.length ? facts.join(' · ') : SITE_DESCRIPTION
+}
 
 export const Route = createFileRoute('/people/$id')({
   loader: async ({ params }) => {
@@ -16,8 +23,10 @@ export const Route = createFileRoute('/people/$id')({
     if (!person) throw notFound()
     return person
   },
-  head: ({ loaderData }) => ({
-    meta: [{ title: loaderData ? `${loaderData.display_name} · ${SITE_NAME}` : SITE_NAME }],
+  head: ({ loaderData: person }) => ({
+    meta: person
+      ? seo({ title: person.display_name, description: describe(person), image: person.avatar_url })
+      : [],
   }),
   component: PersonPage,
 })

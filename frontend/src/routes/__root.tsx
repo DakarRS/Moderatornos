@@ -1,6 +1,7 @@
 import { HeadContent, Link, Outlet, Scripts, createRootRoute } from '@tanstack/react-router'
 import { Users } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { SITE_DESCRIPTION, seo } from '#/lib/seo'
 import { SITE_NAME } from '#/lib/site'
 import appCss from '../styles.css?url'
 
@@ -9,7 +10,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: SITE_NAME },
+      ...seo({ description: SITE_DESCRIPTION }),
     ],
     links: [{ rel: 'stylesheet', href: appCss }],
   }),
