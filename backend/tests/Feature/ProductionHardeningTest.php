@@ -7,6 +7,7 @@ use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
@@ -69,6 +70,16 @@ class ProductionHardeningTest extends TestCase
             ->get('/admin/login')
             ->assertOk()
             ->assertSee('https://moderatornos.test', false);
+    }
+
+    // The container runs this on every start, and it fails if a view folder goes missing.
+    public function test_views_can_be_cached_like_the_production_container_does(): void
+    {
+        try {
+            $this->assertSame(0, Artisan::call('view:cache'));
+        } finally {
+            Artisan::call('view:clear');
+        }
     }
 
     public function test_the_health_check_works_without_a_session(): void
