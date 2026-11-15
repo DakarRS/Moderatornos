@@ -3,7 +3,21 @@ import { useEffect, useRef, useState } from 'react'
 import { Input } from '#/components/ui/input'
 import { MAX_SEARCH_LENGTH } from '#/lib/people'
 
-export function SearchBox({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+type SearchBoxProps = {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  label?: string
+  maxLength?: number
+}
+
+export function SearchBox({
+  value,
+  onChange,
+  placeholder = 'Search by name or country',
+  label = 'Search people',
+  maxLength = MAX_SEARCH_LENGTH,
+}: SearchBoxProps) {
   const [draft, setDraft] = useState(value)
   const lastSent = useRef(value)
 
@@ -31,10 +45,10 @@ export function SearchBox({ value, onChange }: { value: string; onChange: (value
       <Input
         type="search"
         value={draft}
-        maxLength={MAX_SEARCH_LENGTH}
+        maxLength={maxLength}
         onChange={(event) => setDraft(event.target.value)}
-        placeholder="Search by name or country"
-        aria-label="Search people"
+        placeholder={placeholder}
+        aria-label={label}
         className="h-10 bg-card pl-9"
       />
     </div>

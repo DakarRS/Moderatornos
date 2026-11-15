@@ -13,7 +13,7 @@ enum UserRole: string implements HasLabel
     {
         return match ($this) {
             self::Admin => 'Admin: everything, including users and categories',
-            self::Editor => 'Editor: people only',
+            self::Editor => 'Editor: people and solutions',
         };
     }
 }

@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { json, jsonOrNull } from '#/lib/api'
 
 export type Person = {
   id: number
@@ -30,20 +31,6 @@ export type Directory = {
 export const MAX_SEARCH_LENGTH = 100
 export const MAX_PAGE = 1_000_000
 
-async function api(path: string) {
-  const base = process.env.API_URL ?? 'http://localhost:8100'
-  return fetch(`${base}/api${path}`, {
-    headers: { Accept: 'application/json' },
-    signal: AbortSignal.timeout(8000),
-  })
-}
-
-async function json<T>(path: string): Promise<T> {
-  const response = await api(path)
-  if (!response.ok) throw new Error(`People API responded with ${response.status}`)
-  return response.json()
-}
-
 export const loadDirectory = createServerFn({ method: 'GET' })
   .validator((input: { q?: string; page?: number; category?: string }) => input)
   .handler(async ({ data }): Promise<Directory> => {
@@ -66,10 +53,7 @@ export const loadDirectory = createServerFn({ method: 'GET' })
 export const getPerson = createServerFn({ method: 'GET' })
   .validator((id: string) => id)
   .handler(async ({ data: id }): Promise<Person | null> => {
-    const response = await api(`/people/${encodeURIComponent(id)}`)
-    if (response.status === 404) return null
-    if (!response.ok) throw new Error(`People API responded with ${response.status}`)
-    return (await response.json()).data
+    return (await jsonOrNull<{ data: Person }>(`/people/${encodeURIComponent(id)}`))?.data ?? null
   })
 
 // These are calendar dates, so a local timezone would shift them a day and break hydration.

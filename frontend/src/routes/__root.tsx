@@ -33,6 +33,21 @@ function RootDocument({ children }: { children: ReactNode }) {
               </span>
               {SITE_NAME}
             </Link>
+            <nav className="ml-auto flex items-center gap-1 text-sm">
+              {[
+                { to: '/', label: 'People' },
+                { to: '/solutions', label: 'Solutions' },
+              ].map(({ to, label }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  activeOptions={{ exact: to === '/' }}
+                  className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground data-[status=active]:bg-secondary data-[status=active]:text-secondary-foreground"
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-12">{children}</main>

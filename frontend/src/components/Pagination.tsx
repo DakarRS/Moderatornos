@@ -9,7 +9,7 @@ export function Pagination({ page, lastPage }: { page: number; lastPage: number 
     <nav aria-label="Pagination" className="mt-8 flex items-center justify-between gap-4">
       {page > 1 ? (
         <Button variant="outline" asChild>
-          <Link to="/" search={(prev) => ({ ...prev, page: page === 2 ? undefined : page - 1 })}>
+          <Link to="." search={(prev) => ({ ...prev, page: page === 2 ? undefined : page - 1 })}>
             <ChevronLeft aria-hidden /> Previous
           </Link>
         </Button>
@@ -23,7 +23,7 @@ export function Pagination({ page, lastPage }: { page: number; lastPage: number 
       </span>
       {page < lastPage ? (
         <Button variant="outline" asChild>
-          <Link to="/" search={(prev) => ({ ...prev, page: page + 1 })}>
+          <Link to="." search={(prev) => ({ ...prev, page: page + 1 })}>
             Next <ChevronRight aria-hidden />
           </Link>
         </Button>

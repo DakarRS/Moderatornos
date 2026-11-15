@@ -96,3 +96,34 @@
     transition: none !important;
   }
 }
+
+/* Solution text comes from the API as rendered markdown. */
+.markdown {
+  @apply space-y-3 leading-relaxed;
+}
+.markdown a {
+  @apply text-primary underline underline-offset-4;
+}
+.markdown ul {
+  @apply list-disc space-y-1 pl-6;
+}
+.markdown ol {
+  @apply list-decimal space-y-1 pl-6;
+}
+.markdown code {
+  @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.9em];
+}
+.markdown pre {
+  @apply overflow-x-auto rounded-lg bg-muted p-4 text-sm;
+}
+.markdown pre code {
+  @apply bg-transparent p-0;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  @apply font-bold;
+}
+.markdown blockquote {
+  @apply border-l-4 pl-4 text-muted-foreground;
+}
