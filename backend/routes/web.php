@@ -2,6 +2,5 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// In production Caddy sends / to the frontend, so this only catches direct visits to the backend.
+Route::redirect('/', '/admin');
