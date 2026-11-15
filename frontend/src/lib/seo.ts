@@ -1,6 +1,6 @@
 import { SITE_NAME } from '#/lib/site'
 
-export const SITE_DESCRIPTION = `The people behind ${SITE_NAME}.`
+export const SITE_DESCRIPTION = 'The moderators at Aternos'
 
 // Matches --primary in light mode; Discord uses it for the embed's side bar.
 const THEME_COLOR = '#4f46e5'
