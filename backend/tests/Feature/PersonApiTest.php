@@ -73,8 +73,9 @@ class PersonApiTest extends TestCase
 
     public function test_search_matches_each_word_of_a_display_name(): void
     {
-        Person::factory()->create(['display_name' => 'Ada Lovelace']);
-        Person::factory()->create(['display_name' => 'Ada Yonath']);
+        // No countries, since "love" would also match a random Slovenia.
+        Person::factory()->create(['display_name' => 'Ada Lovelace', 'country_code' => null]);
+        Person::factory()->create(['display_name' => 'Ada Yonath', 'country_code' => null]);
 
         $this->getJson('/api/people?search=ada%20love')
             ->assertOk()
