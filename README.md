@@ -1,6 +1,6 @@
 # Moderatornos
 
-Filament admin and read-only JSON API (`backend/`), with a TanStack Start frontend (`frontend/`).
+A directory of the Aternos moderators and a knowledge base of fixes the Aternos help center doesn't cover. Filament admin and JSON API (`backend/`), with a TanStack Start frontend (`frontend/`).
 
 ```sh
 docker compose up --build
@@ -8,14 +8,38 @@ docker compose up --build
 
 | What | URL |
 | --- | --- |
-| Frontend | http://localhost:3100 |
-| Admin | http://localhost:8100/admin (`admin` / `password`, local only) |
-| API | http://localhost:8100/api/people?search=&category=&page=&per_page= and http://localhost:8100/api/categories?search= |
+| Frontend | http://localhost:3100 (People at `/`, Solutions at `/solutions`) |
+| Admin | http://localhost:8100/admin (`admin` / `password`, local only). The backend root redirects here. |
+| API | http://localhost:8100/api, see below |
 | Postgres | `localhost:5435` (`aternos` / `secret`) |
 
-Categories are managed in the admin, and the frontend tabs follow their order.
+The ports are offset from the usual 3000/8000/5432 so this can run next to other projects.
 
-Run backend tests with `docker compose exec backend php artisan test`.
+### API
+
+| Endpoint | Notes |
+| --- | --- |
+| `GET /api/people?search=&category=&page=&per_page=` | Search matches names and country names. |
+| `GET /api/people/{id}` | |
+| `GET /api/categories?search=` | |
+| `GET /api/solutions?search=&tag=&edition=&page=&per_page=` | Published only. Full-text search that tolerates typos. `edition` is `java` or `bedrock`, and entries for both editions show under either. |
+| `GET /api/solutions/{slug}` | Includes the markdown fields rendered to HTML, with raw HTML escaped. |
+| `POST /api/solutions/match` with `{"url": "https://mclo.gs/…"}` | Fetches the log from mclo.gs and returns published solutions whose signatures it contains. |
+
+Everything is rate limited. Apart from log matching, the API is read-only.
+
+### Admin
+
+- Admins manage everything. Editors manage People and Solutions only.
+- Categories and Tags are admin-only. Category order sets the order of the frontend tabs.
+- Solutions start as drafts and stay hidden until Published is switched on.
+- A solution's slug is editable and is filled from the title when you create it. Renaming a solution later doesn't change the slug, so links shared in Discord keep working unless you edit the slug yourself.
+- Signatures are plain text matched without case against mclo.gs logs, not regular expressions.
+
+### Development notes
+
+- Run backend tests with `docker compose exec backend php artisan test`. Tests fake mclo.gs and refuse any other outgoing request.
+- The frontend container doesn't notice new route files. Run `docker compose restart frontend` after adding one, so `routeTree.gen.ts` is regenerated.
 
 ## Production
 
@@ -26,7 +50,6 @@ Pushing to `main` runs the tests, builds images and deploys to the server with D
 - Invite people from the admin's Invites page. Registration is closed without a valid link.
 - Secrets live in `/opt/moderatornos/.env` and `backup.env` on the server, never in this repository.
 - Back up now: `ssh root@<server> moderatornos-backup`
-
 ## Dependencies
 
 `frontend/node_modules` is one folder shared by your machine and Docker, and the frontend container resets it to `package-lock.json` every time it starts. Your editor reads the same packages the app runs on.
