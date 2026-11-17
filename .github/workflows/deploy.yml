@@ -86,16 +86,20 @@ jobs:
       contents: read
       packages: read
     steps:
-      - uses: actions/checkout@v4
       - name: Deploy over SSH
+        # Host and its key are secrets because the repo is public and they reveal the server's IP.
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -z "$DEPLOY_SSH_KEY" ]; then echo "::error::DEPLOY_SSH_KEY secret is not set"; exit 1; fi
+          for s in DEPLOY_SSH_KEY DEPLOY_HOST DEPLOY_KNOWN_HOSTS; do
+            if [ -z "${!s}" ]; then echo "::error::$s secret is not set"; exit 1; fi
+          done
           install -m 700 -d ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           # The server only accepts this key to run its deploy script, given a commit and registry token.
           printf '%s\n%s\n' "$GITHUB_ACTOR" "$GHCR_TOKEN" | ssh -i ~/.ssh/deploy \
-            -o UserKnownHostsFile=deploy/known_hosts -o StrictHostKeyChecking=yes \
-            "deploy@$(cat deploy/host)" "$GITHUB_SHA"
+            -o StrictHostKeyChecking=yes "deploy@$DEPLOY_HOST" "$GITHUB_SHA"
